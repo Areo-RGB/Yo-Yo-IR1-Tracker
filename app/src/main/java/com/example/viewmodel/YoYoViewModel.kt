@@ -105,7 +105,7 @@ data class AthleteUndoAction(
 
 class YoYoViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: YoYoRepository
-    val soundHelper: SoundHelper = SoundHelper()
+    val soundHelper: SoundHelper = SoundHelper(application)
 
     private val _uiState = MutableStateFlow(YoYoUiState())
     val uiState: StateFlow<YoYoUiState> = _uiState.asStateFlow()
@@ -138,6 +138,7 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
                     sessionSavedId = null
                 )
             }
+            soundHelper.startAudioTrack()
             soundHelper.playStartBeep()
             startTicker()
         } else if (_uiState.value.testState == TestState.PAUSED) {
@@ -148,6 +149,7 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
     fun pauseTest() {
         if (_uiState.value.testState == TestState.RUNNING) {
             timerJob?.cancel()
+            soundHelper.pauseAudioTrack()
             _uiState.update { it.copy(testState = TestState.PAUSED) }
         }
     }
@@ -155,12 +157,14 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
     fun resumeTest() {
         if (_uiState.value.testState == TestState.PAUSED) {
             _uiState.update { it.copy(testState = TestState.RUNNING) }
+            soundHelper.resumeAudioTrack()
             startTicker()
         }
     }
 
     fun stopAndFinishTest() {
         timerJob?.cancel()
+        soundHelper.stopAudioTrack()
         val currentDistance = _uiState.value.currentDistanceMeters
         val currentLevel = _uiState.value.currentShuttle.levelDisplay
         val currentShuttleNum = _uiState.value.currentShuttle.shuttleNumber
@@ -191,6 +195,7 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
 
     fun resetTest() {
         timerJob?.cancel()
+        soundHelper.resetAudioTrack()
         _uiState.update { current ->
             val resetAthletes = current.athletes.map {
                 it.copy(
@@ -226,7 +231,7 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
 
     fun toggleSound() {
         val newSound = !_uiState.value.isSoundEnabled
-        soundHelper.isSoundEnabled = newSound
+        soundHelper.setSoundEnabledState(newSound)
         _uiState.update { it.copy(isSoundEnabled = newSound) }
     }
 
@@ -235,6 +240,7 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { current ->
             val newTotal = (current.totalElapsedMillis + deltaMillis).coerceAtLeast(0L)
             val newShuttleElapsed = (current.currentShuttleElapsedMillis + deltaMillis).coerceAtLeast(0L)
+            soundHelper.seekAudioTrackTo(newTotal)
             current.copy(
                 totalElapsedMillis = newTotal,
                 currentShuttleElapsedMillis = newShuttleElapsed
@@ -245,9 +251,13 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
     fun advanceToNextShuttle() {
         val currentIdx = _uiState.value.currentShuttleIndex
         if (currentIdx < YoYoProtocol.totalShuttlesCount - 1) {
+            val newIdx = currentIdx + 1
+            val newTotal = YoYoProtocol.getCumulativeTimeUpToShuttleMs(newIdx)
+            soundHelper.seekAudioTrackTo(newTotal)
             _uiState.update { current ->
                 current.copy(
-                    currentShuttleIndex = currentIdx + 1,
+                    currentShuttleIndex = newIdx,
+                    totalElapsedMillis = newTotal,
                     currentShuttleElapsedMillis = 0L,
                     currentPhase = ShuttlePhase.RUNNING
                 )
@@ -259,9 +269,13 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
     fun previousShuttle() {
         val currentIdx = _uiState.value.currentShuttleIndex
         if (currentIdx > 0) {
+            val newIdx = currentIdx - 1
+            val newTotal = YoYoProtocol.getCumulativeTimeUpToShuttleMs(newIdx)
+            soundHelper.seekAudioTrackTo(newTotal)
             _uiState.update { current ->
                 current.copy(
-                    currentShuttleIndex = currentIdx - 1,
+                    currentShuttleIndex = newIdx,
+                    totalElapsedMillis = newTotal,
                     currentShuttleElapsedMillis = 0L,
                     currentPhase = ShuttlePhase.RUNNING
                 )

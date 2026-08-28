@@ -84,6 +84,14 @@ object YoYoProtocol {
     val totalShuttlesCount: Int = shuttles.size // 91
     val maxDistanceMeters: Int = shuttles.last().cumulativeDistanceMeters // 3640m
 
+    fun getCumulativeTimeUpToShuttleMs(shuttleIndex: Int): Long {
+        var totalSec = 0.0
+        for (i in 0 until shuttleIndex.coerceIn(0, shuttles.size)) {
+            totalSec += shuttles[i].totalDurationSeconds
+        }
+        return (totalSec * 1000).toLong()
+    }
+
     /**
      * Bangsbo formula for Yo-Yo IR1 VO2max estimation:
      * VO2max (mL/kg/min) = IR1 distance (m) × 0.0084 + 36.4
