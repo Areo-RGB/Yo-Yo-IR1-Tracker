@@ -1,0 +1,6 @@
+{
+  "name": "Yo-Yo IR1 Tracker",
+  "description": "Dynamic Yo-Yo Intermittent Recovery Test Level 1 tracker with live distance meter, athlete warning and elimination cards, and results saving.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
