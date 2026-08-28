@@ -46,7 +46,12 @@ data class YoYoUiState(
         }
 
     val currentDistanceMeters: Int
-        get() = currentShuttle.cumulativeDistanceMeters
+        get() = when {
+            testState == TestState.IDLE -> 0
+            testState == TestState.COMPLETED -> YoYoProtocol.maxDistanceMeters
+            currentPhase == ShuttlePhase.RECOVERY -> (currentShuttleIndex + 1) * 40
+            else -> currentShuttleIndex * 40
+        }
 
     val activeRunnersCount: Int
         get() = athletes.count { it.status == AthleteStatus.RUNNING || it.status == AthleteStatus.WARNED }

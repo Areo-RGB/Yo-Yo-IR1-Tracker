@@ -41,4 +41,42 @@ class ExampleUnitTest {
     assertEquals(16, names.size)
     assertEquals(expected, names)
   }
+
+  @Test
+  fun testDistanceCalculationStartsAtZero() {
+    val idleState = com.example.viewmodel.YoYoUiState(
+      testState = com.example.model.TestState.IDLE,
+      currentShuttleIndex = 0,
+      currentPhase = com.example.model.ShuttlePhase.RUNNING
+    )
+    assertEquals(0, idleState.currentDistanceMeters)
+
+    val runningShuttle1 = com.example.viewmodel.YoYoUiState(
+      testState = com.example.model.TestState.RUNNING,
+      currentShuttleIndex = 0,
+      currentPhase = com.example.model.ShuttlePhase.RUNNING
+    )
+    assertEquals(0, runningShuttle1.currentDistanceMeters)
+
+    val recoveryShuttle1 = com.example.viewmodel.YoYoUiState(
+      testState = com.example.model.TestState.RUNNING,
+      currentShuttleIndex = 0,
+      currentPhase = com.example.model.ShuttlePhase.RECOVERY
+    )
+    assertEquals(40, recoveryShuttle1.currentDistanceMeters)
+
+    val runningShuttle2 = com.example.viewmodel.YoYoUiState(
+      testState = com.example.model.TestState.RUNNING,
+      currentShuttleIndex = 1,
+      currentPhase = com.example.model.ShuttlePhase.RUNNING
+    )
+    assertEquals(40, runningShuttle2.currentDistanceMeters)
+
+    val recoveryShuttle2 = com.example.viewmodel.YoYoUiState(
+      testState = com.example.model.TestState.RUNNING,
+      currentShuttleIndex = 1,
+      currentPhase = com.example.model.ShuttlePhase.RECOVERY
+    )
+    assertEquals(80, recoveryShuttle2.currentDistanceMeters)
+  }
 }
