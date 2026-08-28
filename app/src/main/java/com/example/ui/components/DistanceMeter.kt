@@ -73,9 +73,9 @@ fun DistanceMeter(
     onStopTest: () -> Unit,
     onResetTest: () -> Unit,
     onToggleSound: () -> Unit,
-    onAdjustTime: (Double) -> Unit,
-    onNextShuttle: () -> Unit,
-    onPrevShuttle: () -> Unit,
+    onAdjustTime: (Double) -> Unit = {},
+    onNextShuttle: () -> Unit = {},
+    onPrevShuttle: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val currentShuttle = uiState.currentShuttle
@@ -370,51 +370,7 @@ fun DistanceMeter(
                     }
                 }
             }
-
-            // Quick Audio Offset Sync Bar (When running or paused)
-            if (uiState.testState == TestState.RUNNING || uiState.testState == TestState.PAUSED) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "External Audio Sync:",
-                        color = Color.Gray,
-                        fontSize = 11.sp
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        SyncButton(label = "-1s", onClick = { onAdjustTime(-1.0) })
-                        SyncButton(label = "+1s", onClick = { onAdjustTime(1.0) })
-                        SyncButton(label = "Prev Shuttle", onClick = onPrevShuttle)
-                        SyncButton(label = "Next Shuttle", onClick = onNextShuttle)
-                    }
-                }
-            }
         }
-    }
-}
-
-@Composable
-private fun SyncButton(
-    label: String,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(Slate800)
-            .border(1.dp, Slate700, RoundedCornerShape(6.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 5.dp)
-    ) {
-        Text(
-            text = label,
-            color = AthleticBlueLight,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium
-        )
     }
 }
 
